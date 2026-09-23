@@ -3,152 +3,214 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>水下考古潜水记录</title>
+  <title>水下考古潜次减压停留与标记放行台</title>
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; font-family: Arial, "PingFang SC", sans-serif; background: #e8f2f3; color: #183035; }
-    header { padding: 18px 24px; background: #fff; border-bottom: 1px solid #c9dadc; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
-    h1 { margin: 0; font-size: 26px; }
-    button { border: 0; border-radius: 8px; padding: 10px 13px; background: #1d6c78; color: #fff; font-weight: 800; cursor: pointer; }
+    header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #c9dadc; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+    h1 { margin: 0; font-size: 23px; }
+    h2 { margin: 6px 0 10px; font-size: 16px; }
+    button { border: 0; border-radius: 8px; padding: 9px 13px; background: #1d6c78; color: #fff; font-weight: 800; cursor: pointer; }
+    button:disabled { opacity: .55; cursor: default; }
     button.secondary { background: #64777b; }
-    input, select, textarea { width: 100%; border: 1px solid #c9dadc; border-radius: 6px; padding: 9px; font: inherit; background: #fff; }
-    textarea { min-height: 64px; }
-    label { display: block; margin: 9px 0 5px; color: #5c7378; font-size: 13px; }
-    .app { display: grid; grid-template-columns: 1fr 360px; gap: 16px; padding: 16px; }
+    button.mini { padding: 5px 9px; font-size: 12px; margin-right: 5px; }
+    input, select, textarea { width: 100%; border: 1px solid #c9dadc; border-radius: 6px; padding: 8px; font: inherit; background: #fff; }
+    textarea { min-height: 52px; }
+    label { display: block; margin: 7px 0 3px; color: #5c7378; font-size: 12px; }
+    .wrap { padding: 14px 18px; display: grid; gap: 14px; }
     .panel { background: #fff; border: 1px solid #c9dadc; border-radius: 8px; padding: 14px; }
-    .map { position: relative; height: calc(100vh - 128px); min-height: 560px; overflow: hidden; background: radial-gradient(circle at 30% 20%, #5fa8b1, #0f5262 55%, #07333f); border-radius: 8px; border: 1px solid #0c4451; cursor: crosshair; }
+    .app { display: grid; grid-template-columns: 1fr 350px; gap: 14px; }
+
+    /* 潜次登记表单 */
+    .dive-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; align-items: end; }
+    .checkline { display: flex; align-items: center; gap: 6px; padding-bottom: 8px; }
+    .checkline input { width: auto; }
+    .checkline label { margin: 0; font-size: 13px; color: #183035; }
+    .hint { font-size: 12px; margin-top: 8px; padding: 7px 9px; border-radius: 6px; }
+    .hint.ok { background: #e9f6ec; color: #256b3a; }
+    .hint.bad { background: #fdece8; color: #9c3826; }
+    .hint.muted { color: #5c7378; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #e0ebec; vertical-align: top; }
+    th { color: #5c7378; font-weight: 700; white-space: nowrap; }
+    .row-actions { white-space: nowrap; }
+    .reason { color: #9c3826; font-size: 12px; margin-top: 3px; }
+    .archive-item { border-left: 3px solid #c9dadc; padding: 4px 9px; margin: 7px 0; background: #f7fafa; border-radius: 0 6px 6px 0; }
+    details summary { cursor: pointer; font-size: 13px; color: #5c7378; margin: 8px 0; }
+
+    /* 统计条 */
+    .stats { display: flex; flex-wrap: wrap; gap: 10px; }
+    .stat { display: inline-flex; align-items: center; gap: 7px; background: #f2f8f9; border: 1px solid #d7e4e5; border-radius: 999px; padding: 5px 12px; font-size: 13px; }
+    .stat b { font-size: 16px; }
+    .stat-label { color: #5c7378; }
+
+    /* 平面图 */
+    .map { position: relative; height: 560px; overflow: hidden; background: radial-gradient(circle at 30% 20%, #5fa8b1, #0f5262 55%, #07333f); border-radius: 8px; border: 1px solid #0c4451; cursor: crosshair; }
     .wreck { position: absolute; left: 24%; top: 28%; width: 52%; height: 31%; border: 3px solid rgba(220,235,224,.55); border-radius: 48% 44% 42% 50%; transform: rotate(-9deg); }
     .rib { position: absolute; width: 2px; height: 36%; background: rgba(220,235,224,.35); top: 27%; transform: rotate(-9deg); }
-    .marker { position: absolute; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 800; transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,.7); box-shadow: 0 4px 12px rgba(0,0,0,.35); cursor: pointer; }
+    .marker { position: absolute; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 800; transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,.7); box-shadow: 0 4px 12px rgba(0,0,0,.35); cursor: pointer; padding: 0; }
     .marker.selected { outline: 4px solid rgba(255,234,124,.75); }
+    .marker.pending { border-style: dashed; border-color: #ffd36b; box-shadow: 0 0 0 3px rgba(255,180,60,.35); }
     .ceramic { background: #b56c38; } .wood { background: #6c4b2f; } .metal { background: #6e7880; } .unknown { background: #725ca6; }
+
     .toolbar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-    .list { display: grid; gap: 8px; max-height: 330px; overflow: auto; }
-    .item { border: 1px solid #d7e4e5; border-radius: 8px; padding: 10px; cursor: pointer; }
+    .list { display: grid; gap: 8px; max-height: 460px; overflow: auto; }
+    .timeline { display: grid; gap: 8px; max-height: 460px; overflow: auto; }
+    .item { border: 1px solid #d7e4e5; border-radius: 8px; padding: 9px; cursor: pointer; }
     .item.active { border-color: #1d6c78; background: #eef8f9; }
-    .timeline { display: grid; gap: 8px; max-height: 240px; overflow: auto; }
-    .pill { display: inline-block; padding: 3px 8px; border: 1px solid #c9dadc; border-radius: 999px; font-size: 12px; }
-    .muted { color: #5c7378; font-size: 13px; }
-    @media (max-width: 980px) { header { display: block; } .app { grid-template-columns: 1fr; } .map { height: 560px; } }
+    .timeline .item { cursor: default; }
+    .pill { display: inline-block; padding: 2px 8px; border: 1px solid #c9dadc; border-radius: 999px; font-size: 12px; margin: 2px 2px 0 0; }
+    .pill.ok { background: #e9f6ec; border-color: #b9dcc3; color: #256b3a; }
+    .pill.warn { background: #fdf3e0; border-color: #ecd49a; color: #8a5a16; }
+    .muted { color: #5c7378; font-size: 12px; }
+    .banner { margin-top: 8px; padding: 7px 10px; border-radius: 6px; background: #fdf3e0; color: #8a5a16; font-size: 12px; }
+
+    dialog { border: 1px solid #c9dadc; border-radius: 10px; padding: 18px; width: min(440px, 92vw); }
+    dialog::backdrop { background: rgba(9,40,48,.45); }
+    .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+    .toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+             background: #183035; color: #fff; padding: 11px 18px; border-radius: 999px; font-size: 14px; transition: .25s; max-width: 80vw; z-index: 30; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .toast.bad { background: #9c3826; } .toast.warn { background: #8a5a16; } .toast.ok { background: #1d6c78; }
+
+    @media (max-width: 1080px) { .app { grid-template-columns: 1fr; } .dive-grid { grid-template-columns: repeat(2, 1fr); } .map { height: 460px; } }
   </style>
 </head>
 <body>
   <header>
-    <div><h1>水下考古潜水记录</h1><div class="muted">点击沉船平面图添加标记，筛选、编辑并导出JSON。</div></div>
-    <button id="exportBtn">导出JSON</button>
+    <div>
+      <h1>潜次减压停留与标记放行台</h1>
+      <div class="muted">潜次登记 → 免减压/安全停留判定 → 换人复核放行 → 时间线与导出。数据保存在本机浏览器。</div>
+    </div>
+    <button id="exportBtn">导出放行JSON</button>
   </header>
-  <main class="app">
+
+  <main class="wrap">
+    <!-- 潜次登记与放行表 -->
     <section class="panel">
-      <div class="map" id="map"><div class="wreck"></div></div>
-    </section>
-    <aside class="panel">
-      <div class="toolbar">
-        <select id="filter"><option value="">全部类型</option><option value="ceramic">陶片</option><option value="wood">木构件</option><option value="metal">金属件</option><option value="unknown">未知物</option></select>
-        <select id="view"><option value="list">标记列表</option><option value="timeline">潜次时间线</option></select>
-      </div>
-      <form id="form">
-        <h2>标记信息</h2>
-        <input name="id" type="hidden">
-        <label>编号</label><input name="code" required>
-        <label>类型</label><select name="type"><option value="ceramic">陶片</option><option value="wood">木构件</option><option value="metal">金属件</option><option value="unknown">未知物</option></select>
-        <label>潜次</label><input name="dive" placeholder="例如DIVE-04" required>
-        <label>深度</label><input name="depth" placeholder="例如18.4m" required>
-        <label>朝向</label><input name="orientation" placeholder="例如东北偏北">
-        <label>保存状态</label><input name="condition" placeholder="例如表面附着贝类">
-        <label>备注</label><textarea name="note"></textarea>
-        <div class="toolbar"><button>保存标记</button><button type="button" id="deleteBtn" class="secondary">删除</button></div>
+      <h2>潜次登记</h2>
+      <form id="diveForm" class="dive-grid">
+        <div>
+          <label>潜次登记编号</label>
+          <input id="diveCode" placeholder="DIVE-04" required>
+        </div>
+        <div>
+          <label>潜水员 A</label>
+          <input id="diverA" required>
+        </div>
+        <div>
+          <label>潜水员 B</label>
+          <input id="diverB" required>
+        </div>
+        <div>
+          <label>最大深度（米）</label>
+          <input id="maxDepth" type="number" step="0.1" min="0" required>
+        </div>
+        <div>
+          <label>底部时间（分钟）</label>
+          <input id="bottomTime" type="number" step="1" min="0" required>
+        </div>
+        <div>
+          <label>登记提交人</label>
+          <input id="recorder" placeholder="复核时须换人" required>
+          <div class="checkline"><input id="safetyStop" type="checkbox"><label for="safetyStop">已做安全停留（5m/3min）</label></div>
+        </div>
+        <div style="grid-column: 1 / -1; display: flex; gap: 8px; align-items: center;">
+          <button id="diveSubmitBtn" type="submit">登记潜次</button>
+          <button id="resetDiveBtn" type="button" class="secondary">清空/退出修订</button>
+          <span id="ndlHint" class="hint muted">输入深度后显示免减压限值</span>
+        </div>
+        <div id="reviseBanner" class="banner" style="grid-column: 1 / -1;" hidden></div>
       </form>
-      <h2 id="listTitle">标记列表</h2>
-      <div id="list" class="list"></div>
-    </aside>
+
+      <table>
+        <thead>
+          <tr><th>编号</th><th>两名潜水员</th><th>最大深度</th><th>底部时间</th><th>停留/限值</th><th>状态与标记</th><th>操作</th></tr>
+        </thead>
+        <tbody id="diveRows"></tbody>
+      </table>
+      <div id="diveCount" class="muted" style="margin-top:6px;"></div>
+      <div id="archiveBox" style="margin-top:6px;"></div>
+    </section>
+
+    <!-- 统计条（口径随筛选刷新） -->
+    <section class="panel stats" id="statBar"></section>
+
+    <section class="app">
+      <section class="panel">
+        <div class="map" id="map"><div class="wreck"></div></div>
+        <div class="muted" style="margin-top:6px;">
+          实心标记＝已放行（进时间线/统计/导出）；虚线黄边＝待复核（只待复核，不进时间线和导出）。
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="toolbar">
+          <select id="filter">
+            <option value="">全部类型</option>
+            <option value="ceramic">陶片</option>
+            <option value="wood">木构件</option>
+            <option value="metal">金属件</option>
+            <option value="unknown">未知物</option>
+          </select>
+          <select id="view">
+            <option value="list">标记列表</option>
+            <option value="timeline">潜次时间线</option>
+          </select>
+        </div>
+
+        <form id="markForm">
+          <h2>标记信息</h2>
+          <input id="markId" type="hidden">
+          <label>编号</label><input id="markCode" required>
+          <label>类型</label>
+          <select id="markType">
+            <option value="ceramic">陶片</option><option value="wood">木构件</option>
+            <option value="metal">金属件</option><option value="unknown">未知物</option>
+          </select>
+          <label>所属潜次</label><select id="markDive"></select>
+          <label>发现深度</label><input id="markDepth" placeholder="例如18.4m" required>
+          <label>朝向</label><input id="orientation" placeholder="例如东北偏北">
+          <label>保存状态</label><input id="condition" placeholder="例如表面附着贝类">
+          <label>备注</label><textarea id="note"></textarea>
+          <div id="posHint" class="muted" style="margin:6px 0;">点击平面图选择位置</div>
+          <div class="toolbar">
+            <button type="submit">保存标记</button>
+            <button type="button" id="deleteMarkBtn" class="secondary">删除</button>
+          </div>
+        </form>
+
+        <h2 id="listTitle">标记列表</h2>
+        <div id="dataList" class="list"></div>
+      </aside>
+    </section>
   </main>
-  <script>
-    const map = document.querySelector("#map");
-    const form = document.querySelector("#form");
-    const list = document.querySelector("#list");
-    const filter = document.querySelector("#filter");
-    const view = document.querySelector("#view");
-    const listTitle = document.querySelector("#listTitle");
-    const typeNames = { ceramic: "陶片", wood: "木构件", metal: "金属件", unknown: "未知物" };
-    let marks = JSON.parse(localStorage.getItem("zfl30Marks") || "[]");
-    let pending = null;
-    if (!marks.length) {
-      marks = [
-        { id: crypto.randomUUID(), code: "A-017", type: "ceramic", dive: "DIVE-01", x: 42, y: 46, depth: "17.8m", orientation: "东", condition: "边缘残缺", note: "靠近船肋" },
-        { id: crypto.randomUUID(), code: "W-003", type: "wood", dive: "DIVE-02", x: 58, y: 39, depth: "18.2m", orientation: "西北", condition: "稳定", note: "疑似横梁" }
-      ];
-      save();
-    }
-    for (let i = 0; i < 7; i++) {
-      const rib = document.createElement("div");
-      rib.className = "rib";
-      rib.style.left = 28 + i * 7 + "%";
-      map.appendChild(rib);
-    }
-    function save() { localStorage.setItem("zfl30Marks", JSON.stringify(marks)); }
-    function render() {
-      map.querySelectorAll(".marker").forEach(el => el.remove());
-      const filtered = filter.value ? marks.filter(m => m.type === filter.value) : marks;
-      filtered.forEach(mark => {
-        const el = document.createElement("button");
-        el.className = "marker " + mark.type + (mark.id === form.id.value ? " selected" : "");
-        el.style.left = mark.x + "%";
-        el.style.top = mark.y + "%";
-        el.textContent = mark.code.slice(0, 2);
-        el.onclick = event => { event.stopPropagation(); edit(mark.id); };
-        map.appendChild(el);
-      });
-      if (view.value === "timeline") renderTimeline(filtered);
-      else renderList(filtered);
-    }
-    function renderList(data) {
-      listTitle.textContent = "标记列表";
-      list.className = "list";
-      list.innerHTML = data.map(m => '<div class="item '+(m.id===form.id.value?'active':'')+'" data-id="'+m.id+'"><b>'+m.code+'</b> <span class="pill">'+typeNames[m.type]+'</span><div class="muted">'+m.dive+' · '+m.depth+' · '+m.orientation+'</div><div>'+m.condition+'</div></div>').join("");
-      list.querySelectorAll("[data-id]").forEach(el => el.onclick = () => edit(el.dataset.id));
-    }
-    function renderTimeline(data) {
-      listTitle.textContent = "潜次时间线";
-      list.className = "timeline";
-      const groups = data.reduce((map, item) => ((map[item.dive] ||= []).push(item), map), {});
-      list.innerHTML = Object.entries(groups).map(([dive, items]) => '<div class="item"><b>'+dive+'</b><div class="muted">新增'+items.length+'个标记</div>'+items.map(i => '<div>'+i.code+' · '+typeNames[i.type]+'</div>').join("")+'</div>').join("");
-    }
-    function edit(id) {
-      const mark = marks.find(m => m.id === id);
-      if (!mark) return;
-      for (const [key, value] of Object.entries(mark)) if (form[key]) form[key].value = value;
-      pending = { x: mark.x, y: mark.y };
-      render();
-    }
-    map.addEventListener("click", event => {
-      const rect = map.getBoundingClientRect();
-      pending = { x: Number(((event.clientX - rect.left) / rect.width * 100).toFixed(2)), y: Number(((event.clientY - rect.top) / rect.height * 100).toFixed(2)) };
-      form.reset();
-      form.id.value = "";
-      form.code.value = "M-" + String(marks.length + 1).padStart(3, "0");
-      form.dive.value = "DIVE-01";
-      render();
-    });
-    form.onsubmit = event => {
-      event.preventDefault();
-      if (!pending) pending = { x: 50, y: 50 };
-      const data = Object.fromEntries(new FormData(form).entries());
-      if (data.id) Object.assign(marks.find(m => m.id === data.id), data, pending);
-      else marks.push({ ...data, id: crypto.randomUUID(), ...pending });
-      save(); render();
-    };
-    document.querySelector("#deleteBtn").onclick = () => {
-      if (!form.id.value) return;
-      marks = marks.filter(m => m.id !== form.id.value);
-      form.reset(); pending = null; save(); render();
-    };
-    document.querySelector("#exportBtn").onclick = () => {
-      const blob = new Blob([JSON.stringify(marks, null, 2)], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = "dive-marks.json"; a.click(); URL.revokeObjectURL(a.href);
-    };
-    filter.onchange = render; view.onchange = render;
-    render();
-  </script>
+
+  <!-- 复核放行弹窗 -->
+  <dialog id="reviewModal">
+    <h2 id="rvTitle">复核放行</h2>
+    <div id="rvInfo"></div>
+    <label>复核人（须与登记提交人不同）</label>
+    <input id="reviewerName" required>
+    <label>停留深度（米）</label>
+    <input id="stopDepth" type="number" step="0.1" min="0.1" required>
+    <label>停留时长（分钟）</label>
+    <input id="stopMinutes" type="number" step="0.5" min="0.5" required>
+    <label>复核备注</label>
+    <textarea id="rvNote" placeholder="停留站、残余气、异常情况等"></textarea>
+    <div id="rvError" class="reason"></div>
+    <div class="dlg-actions">
+      <button type="button" id="rvCancel" class="secondary">取消</button>
+      <button type="button" id="rvSubmit">通过并放行</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="rules.js"></script>
+  <script src="records.js"></script>
+  <script src="page.js"></script>
 </body>
 </html>
